@@ -14,7 +14,7 @@ export interface Lead {
   hasCRM: boolean
   crmName?: string
   problem: string
-  agentsInterested: AgentType[]
+  agentsInterested: string[]
   urgency: 'immediate' | '1-3months' | 'exploring'
   budget: 'under500' | '500-1500' | '1500plus' | 'undefined'
   score?: number
