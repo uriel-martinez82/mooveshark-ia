@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { leads } from '@/lib/db/schema'
 import { leadFullSchema } from '@/lib/validations/schemas'
 import { scoreLead } from '@/lib/agents/scoring'
+import type { AgentType } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,12 +21,24 @@ export async function POST(req: NextRequest) {
     const score = scoreLead(data)
 
     const [lead] = await db.insert(leads).values({
-      ...data,
+      fullName:         data.fullName,
+      email:            data.email,
+      company:          data.company,
+      role:             data.role,
+      country:          data.country,
+      industry:         data.industry,
+      companySize:      data.companySize,
+      monthlyVolume:    data.monthlyVolume,
+      hasCRM:           data.hasCRM,
+      crmName:          data.crmName,
+      problem:          data.problem,
+      agentsInterested: data.agentsInterested as AgentType[],
+      urgency:          data.urgency,
+      budget:           data.budget,
       score,
       status: 'new',
     }).returning()
 
-    // Inngest solo si está configurado
     if (process.env.INNGEST_EVENT_KEY && process.env.INNGEST_EVENT_KEY !== '...') {
       try {
         const { inngest } = await import('@/lib/inngest/client')
@@ -34,7 +47,7 @@ export async function POST(req: NextRequest) {
           data: { leadId: lead.id, email: lead.email, fullName: lead.fullName, company: lead.company, score, urgency: lead.urgency },
         })
       } catch (e) {
-        console.warn('[inngest] Skipped — not configured:', e)
+        console.warn('[inngest] Skipped:', e)
       }
     }
 
