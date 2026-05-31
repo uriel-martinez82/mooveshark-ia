@@ -1,4 +1,3 @@
-// ─── Lead ─────────────────────────────────────────────────────────────────────
 export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost'
 
 export interface Lead {
@@ -23,7 +22,6 @@ export interface Lead {
   updatedAt: Date
 }
 
-// ─── Agent ────────────────────────────────────────────────────────────────────
 export type AgentType =
   | 'customer-support'
   | 'lead-qualification'
@@ -52,10 +50,15 @@ export interface AgentDefinition {
   description: string
   icon: string
   badge: 'ready' | 'hot'
+  agentName: string
+  agentAvatar: string
+  agentColor: string
+  specialty: string
+  suggestedQuestions: string[]
+  capabilities: string[]
   systemPromptTemplate: string
 }
 
-// ─── Client ───────────────────────────────────────────────────────────────────
 export type PlanType = 'starter' | 'business' | 'enterprise'
 export type ClientStatus = 'trial' | 'active' | 'paused' | 'cancelled'
 
@@ -71,7 +74,6 @@ export interface Client {
   createdAt: Date
 }
 
-// ─── Chat ─────────────────────────────────────────────────────────────────────
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
@@ -90,7 +92,6 @@ export interface ChatSession {
   lastMessageAt: Date
 }
 
-// ─── API responses ────────────────────────────────────────────────────────────
 export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T

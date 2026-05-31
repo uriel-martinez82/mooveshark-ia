@@ -4,7 +4,7 @@ import { createAnthropic } from '@ai-sdk/anthropic'
 import { chatMessageSchema } from '@/lib/validations/schemas'
 import { db } from '@/lib/db'
 import { agents, conversations, messages, usageLogs } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { buildSystemPrompt, getAgentDefinition } from '@/lib/agents/definitions'
 import type { ChatMessage } from '@/types'
 
@@ -31,8 +31,13 @@ export async function POST(req: NextRequest) {
     let history: ChatMessage[] = []
 
     if (convId) {
-      const msgs = await db.select().from(messages).where(eq(messages.conversationId, convId))
-      history = msgs.map(m => ({
+      // Load last 20 messages for memory
+      const msgs = await db.select().from(messages)
+        .where(eq(messages.conversationId, convId))
+        .orderBy(desc(messages.createdAt))
+        .limit(20)
+
+      history = msgs.reverse().map(m => ({
         id:        m.id,
         role:      m.role as 'user' | 'assistant',
         content:   m.content,
@@ -53,9 +58,32 @@ export async function POST(req: NextRequest) {
     })
 
     const definition = getAgentDefinition(agent.type)
+
+    // Build memory context from history
+    const memoryContext = history.length > 2
+      ? `\n\nCONTEXTO DE ESTA CONVERSACIÓN:\nLlevamos ${history.length} mensajes en esta sesión. El usuario ha mencionado o consultado sobre: ${
+          history
+            .filter(m => m.role === 'user')
+            .map(m => m.content.slice(0, 80))
+            .join(' | ')
+        }\n\nUsá este contexto para dar respuestas más personalizadas y evitar repetir información ya discutida.`
+      : ''
+
     const systemPrompt = buildSystemPrompt(
-      agent.systemPrompt || definition?.systemPromptTemplate || '',
-      { tone: agent.tone ?? 'friendly', language: agent.language ?? 'es' }
+      (agent.systemPrompt || definition?.systemPromptTemplate || '') + memoryContext,
+      {
+        company_name:     agent.name,
+        business_context: `Agente de ${definition?.label ?? agent.type}`,
+        tone:             agent.tone     ?? 'friendly',
+        language:         agent.language ?? 'es',
+        value_proposition: 'Soluciones de IA para empresas B2B',
+        calendar_link:    '#',
+        data_context:     'Datos del negocio disponibles',
+        onboarding_steps: 'Proceso de incorporación estándar',
+        position_name:    'Posición abierta',
+        requirements:     'Requisitos del puesto',
+        payment_options:  'Pago en cuotas, descuentos por pronto pago',
+      }
     )
 
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -67,7 +95,7 @@ export async function POST(req: NextRequest) {
         ...history.map(m => ({ role: m.role, content: m.content })),
         { role: 'user' as const, content: message },
       ],
-      maxTokens: 1024,
+      maxTokens: 2048,
     })
 
     await db.insert(messages).values({
