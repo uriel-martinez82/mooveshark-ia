@@ -2,35 +2,22 @@ import { db } from '@/lib/db'
 import { leads } from '@/lib/db/schema'
 import { desc } from 'drizzle-orm'
 import { AdminLeadsTable } from '@/components/admin/AdminLeadsTable'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 import { auth } from '@/lib/auth/config'
-import { LogoutButton } from '@/components/auth/LogoutButton'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
-  const session = await auth()
+  const session  = await auth()
   const allLeads = await db.select().from(leads).orderBy(desc(leads.createdAt))
 
   return (
     <div className="min-h-screen bg-shark-dark">
       <div className="max-w-7xl mx-auto px-6 py-10">
 
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-shark-cyan to-blue-500 flex items-center justify-center text-sm">🦈</div>
-              <span className="font-display font-bold text-white">Mooveshark <span className="text-shark-cyan">IA</span></span>
-            </div>
-            <h1 className="font-display font-bold text-2xl text-white mt-3">Panel admin</h1>
-            <p className="text-white/40 text-sm mt-1">Gestión de leads y clientes</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-white/30">{session?.user?.email}</span>
-            <a href="/" className="btn-ghost text-sm py-2 px-4">← Ver landing</a>
-            <LogoutButton />
-          </div>
-        </div>
+        <AdminHeader email={session?.user?.email ?? ''} />
 
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Total leads',     value: allLeads.length },
