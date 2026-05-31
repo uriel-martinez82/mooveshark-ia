@@ -2,17 +2,19 @@ import { db } from '@/lib/db'
 import { leads } from '@/lib/db/schema'
 import { desc } from 'drizzle-orm'
 import { AdminLeadsTable } from '@/components/admin/AdminLeadsTable'
+import { auth } from '@/lib/auth/config'
+import { LogoutButton } from '@/components/auth/LogoutButton'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
+  const session = await auth()
   const allLeads = await db.select().from(leads).orderBy(desc(leads.createdAt))
 
   return (
     <div className="min-h-screen bg-shark-dark">
       <div className="max-w-7xl mx-auto px-6 py-10">
 
-        {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -22,16 +24,19 @@ export default async function AdminPage() {
             <h1 className="font-display font-bold text-2xl text-white mt-3">Panel admin</h1>
             <p className="text-white/40 text-sm mt-1">Gestión de leads y clientes</p>
           </div>
-          <a href="/" className="btn-ghost text-sm py-2 px-4">← Ver landing</a>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-white/30">{session?.user?.email}</span>
+            <a href="/" className="btn-ghost text-sm py-2 px-4">← Ver landing</a>
+            <LogoutButton />
+          </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total leads', value: allLeads.length },
+            { label: 'Total leads',     value: allLeads.length },
             { label: 'Leads calientes', value: allLeads.filter(l => (l.score ?? 0) >= 70).length, hot: true },
-            { label: 'Leads tibios', value: allLeads.filter(l => (l.score ?? 0) >= 40 && (l.score ?? 0) < 70).length },
-            { label: 'Convertidos', value: allLeads.filter(l => l.status === 'converted').length },
+            { label: 'Leads tibios',    value: allLeads.filter(l => (l.score ?? 0) >= 40 && (l.score ?? 0) < 70).length },
+            { label: 'Convertidos',     value: allLeads.filter(l => l.status === 'converted').length },
           ].map(stat => (
             <div key={stat.label} className="card-dark p-5 rounded-xl">
               <p className="text-xs text-white/40 mb-1 font-medium tracking-wide">{stat.label}</p>
@@ -42,7 +47,6 @@ export default async function AdminPage() {
           ))}
         </div>
 
-        {/* Leads table */}
         <AdminLeadsTable leads={allLeads} />
       </div>
     </div>
