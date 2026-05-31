@@ -30,6 +30,7 @@ export type AgentType =
   | 'onboarding'
   | 'hr-recruitment'
   | 'collections'
+  | 'gastronomy-pastry'
 
 export interface AgentConfig {
   id: string

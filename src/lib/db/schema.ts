@@ -4,7 +4,7 @@ import { pgTable, uuid, text, integer, boolean, timestamp, jsonb, pgEnum } from 
 export const leadStatusEnum   = pgEnum('lead_status',   ['new','contacted','qualified','converted','lost'])
 export const clientStatusEnum = pgEnum('client_status', ['trial','active','paused','cancelled'])
 export const planEnum         = pgEnum('plan',          ['starter','business','enterprise'])
-export const agentTypeEnum    = pgEnum('agent_type',    ['customer-support','lead-qualification','sales-sdr','data-analysis','onboarding','hr-recruitment','collections'])
+export const agentTypeEnum    = pgEnum('agent_type',    ['customer-support','lead-qualification','sales-sdr','data-analysis','onboarding','hr-recruitment','collections','gastronomy-pastry'])
 export const messageRoleEnum  = pgEnum('message_role',  ['user','assistant'])
 
 // ─── Leads ────────────────────────────────────────────────────────────────────

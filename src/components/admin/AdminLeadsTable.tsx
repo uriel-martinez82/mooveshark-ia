@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ConvertLeadModal } from './ConvertLeadModal'
 
 type Lead = {
   id: string
@@ -29,9 +30,9 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 }
 
 const URGENCY_LABELS: Record<string, string> = {
-  immediate:  'Inmediata',
+  immediate:   'Inmediata',
   '1-3months': '1-3 meses',
-  exploring:  'Explorando',
+  exploring:   'Explorando',
 }
 
 const BUDGET_LABELS: Record<string, string> = {
@@ -48,7 +49,7 @@ function ScoreBadge({ score }: { score: number | null }) {
   return <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-white/5 text-white/40 border border-white/10">❄️ {s}</span>
 }
 
-function LeadModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
+function LeadModal({ lead, onClose, onConvert }: { lead: Lead; onClose: () => void; onConvert: () => void }) {
   const agents = Array.isArray(lead.agentsInterested) ? lead.agentsInterested as string[] : []
 
   return (
@@ -75,11 +76,11 @@ function LeadModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
 
         <div className="grid grid-cols-2 gap-3 mb-5">
           {[
-            { label: 'Email',     value: lead.email },
-            { label: 'País',      value: lead.country },
-            { label: 'Industria', value: lead.industry },
-            { label: 'Tamaño',    value: lead.companySize + ' emp.' },
-            { label: 'Urgencia',  value: URGENCY_LABELS[lead.urgency] ?? lead.urgency },
+            { label: 'Email',       value: lead.email },
+            { label: 'País',        value: lead.country },
+            { label: 'Industria',   value: lead.industry },
+            { label: 'Tamaño',      value: lead.companySize + ' emp.' },
+            { label: 'Urgencia',    value: URGENCY_LABELS[lead.urgency] ?? lead.urgency },
             { label: 'Presupuesto', value: BUDGET_LABELS[lead.budget] ?? lead.budget },
           ].map(f => (
             <div key={f.label} className="bg-white/3 rounded-lg p-3">
@@ -90,12 +91,12 @@ function LeadModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
         </div>
 
         <div className="bg-white/3 rounded-lg p-3 mb-4">
-          <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider mb-2">Problema a resolver</p>
+          <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider mb-2">Problema / Tareas solicitadas</p>
           <p className="text-sm text-white/80 leading-relaxed">{lead.problem}</p>
         </div>
 
         {agents.length > 0 && (
-          <div className="bg-white/3 rounded-lg p-3 mb-4">
+          <div className="bg-white/3 rounded-lg p-3 mb-5">
             <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider mb-2">Agentes de interés</p>
             <div className="flex flex-wrap gap-1.5">
               {agents.map((a: string) => (
@@ -105,13 +106,18 @@ function LeadModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           </div>
         )}
 
-        <div className="flex gap-2 mt-4">
-          <a
-            href={`mailto:${lead.email}`}
-            className="btn-primary flex-1 justify-center text-sm py-2.5"
-          >
+        <div className="flex gap-2">
+          <a href={`mailto:${lead.email}`} className="btn-ghost flex-1 justify-center text-sm py-2.5">
             Contactar →
           </a>
+          {lead.status !== 'converted' && (
+            <button
+              onClick={onConvert}
+              className="btn-primary flex-1 justify-center text-sm py-2.5"
+            >
+              ✓ Convertir en cliente
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -119,27 +125,38 @@ function LeadModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
 }
 
 export function AdminLeadsTable({ leads }: { leads: Lead[] }) {
-  const [selected, setSelected] = useState<Lead | null>(null)
-  const [filter, setFilter] = useState<string>('all')
+  const [selected, setSelected]     = useState<Lead | null>(null)
+  const [converting, setConverting] = useState<Lead | null>(null)
+  const [filter, setFilter]         = useState<string>('all')
 
   const filtered = filter === 'all' ? leads : leads.filter(l => {
     if (filter === 'hot')  return (l.score ?? 0) >= 70
     if (filter === 'warm') return (l.score ?? 0) >= 40 && (l.score ?? 0) < 70
-    if (filter === 'cold') return (l.score ?? 0) < 40
     return l.status === filter
   })
 
   return (
     <>
-      {selected && <LeadModal lead={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <LeadModal
+          lead={selected}
+          onClose={() => setSelected(null)}
+          onConvert={() => { setConverting(selected); setSelected(null) }}
+        />
+      )}
+      {converting && (
+        <ConvertLeadModal
+          lead={converting}
+          onClose={() => setConverting(null)}
+        />
+      )}
 
-      {/* Filters */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         {[
-          { value: 'all',  label: 'Todos' },
-          { value: 'hot',  label: '🔥 Calientes' },
-          { value: 'warm', label: '⚡ Tibios' },
-          { value: 'new',  label: 'Nuevos' },
+          { value: 'all',       label: 'Todos' },
+          { value: 'hot',       label: '🔥 Calientes' },
+          { value: 'warm',      label: '⚡ Tibios' },
+          { value: 'new',       label: 'Nuevos' },
           { value: 'contacted', label: 'Contactados' },
           { value: 'converted', label: 'Convertidos' },
         ].map(f => (
@@ -158,30 +175,28 @@ export function AdminLeadsTable({ leads }: { leads: Lead[] }) {
         <span className="ml-auto text-xs text-white/30">{filtered.length} leads</span>
       </div>
 
-      {/* Table */}
       <div className="border border-white/8 rounded-2xl overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/8 bg-white/[0.02]">
-              {['Contacto', 'Empresa', 'Score', 'Agentes', 'Urgencia', 'Estado', 'Fecha'].map(h => (
+              {['Contacto', 'Empresa', 'Score', 'Agentes', 'Urgencia', 'Estado', 'Fecha', ''].map(h => (
                 <th key={h} className="text-left text-[10px] font-semibold text-white/30 uppercase tracking-wider px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={7} className="text-center text-white/30 text-sm py-12">No hay leads con este filtro</td></tr>
+              <tr><td colSpan={8} className="text-center text-white/30 text-sm py-12">No hay leads con este filtro</td></tr>
             ) : filtered.map((lead, i) => (
               <tr
                 key={lead.id}
-                onClick={() => setSelected(lead)}
-                className={`border-b border-white/5 cursor-pointer hover:bg-white/[0.03] transition-colors ${i % 2 === 0 ? '' : 'bg-white/[0.01]'}`}
+                className={`border-b border-white/5 hover:bg-white/[0.03] transition-colors ${i % 2 === 0 ? '' : 'bg-white/[0.01]'}`}
               >
-                <td className="px-4 py-3.5">
+                <td className="px-4 py-3.5 cursor-pointer" onClick={() => setSelected(lead)}>
                   <p className="text-sm font-medium text-white">{lead.fullName}</p>
                   <p className="text-xs text-white/40">{lead.email}</p>
                 </td>
-                <td className="px-4 py-3.5">
+                <td className="px-4 py-3.5 cursor-pointer" onClick={() => setSelected(lead)}>
                   <p className="text-sm text-white/80">{lead.company}</p>
                   <p className="text-xs text-white/40">{lead.industry}</p>
                 </td>
@@ -203,6 +218,16 @@ export function AdminLeadsTable({ leads }: { leads: Lead[] }) {
                   <span className="text-xs text-white/40">
                     {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '—'}
                   </span>
+                </td>
+                <td className="px-4 py-3.5">
+                  {lead.status !== 'converted' && (
+                    <button
+                      onClick={() => setConverting(lead)}
+                      className="text-[10px] font-medium px-2.5 py-1 rounded-lg bg-shark-cyan/10 text-shark-cyan border border-shark-cyan/20 hover:bg-shark-cyan/20 transition-all whitespace-nowrap"
+                    >
+                      → Convertir
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
