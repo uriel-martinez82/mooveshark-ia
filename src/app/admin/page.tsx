@@ -2,7 +2,6 @@ import { db } from '@/lib/db'
 import { leads } from '@/lib/db/schema'
 import { desc } from 'drizzle-orm'
 import { AdminLeadsTable } from '@/components/admin/AdminLeadsTable'
-import { AdminHeader } from '@/components/admin/AdminHeader'
 import { auth } from '@/lib/auth/config'
 
 export const dynamic = 'force-dynamic'
@@ -14,8 +13,6 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-shark-dark">
       <div className="max-w-7xl mx-auto px-6 py-10">
-
-        <AdminHeader email={session?.user?.email ?? ''} />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
