@@ -1,10 +1,6 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
-import { db } from '@/lib/db'
-import { clients } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
-import bcrypt from 'bcryptjs'
 
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? 'admin@mooveshark.ia'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'changeme123'
@@ -29,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const { email, password, role } = parsed.data
 
-        // Admin login
+        // Admin login — no DB needed
         if (role === 'admin') {
           if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
             return { id: 'admin', email, name: 'Admin', role: 'admin' }
@@ -37,13 +33,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        // Client login
+        // Client login — dynamic import to avoid Edge Runtime issues
+        const { db }      = await import('@/lib/db')
+        const { clients } = await import('@/lib/db/schema')
+        const { eq }      = await import('drizzle-orm')
+        const bcrypt      = await import('bcryptjs')
+
         const [client] = await db.select().from(clients).where(eq(clients.email, email))
         if (!client || !client.passwordHash) return null
 
         const valid = await bcrypt.compare(password, client.passwordHash)
         if (!valid) return null
-
         if (client.status === 'cancelled') return null
 
         return {
@@ -52,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name:    client.company,
           role:    'client',
           company: client.company,
-          plan:    client.plan,
+          plan:    client.plan ?? 'starter',
         }
       },
     }),
@@ -61,16 +61,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role    = (user as Record<string, unknown>).role
-        token.company = (user as Record<string, unknown>).company
-        token.plan    = (user as Record<string, unknown>).plan
-        token.userId  = user.id
+        const u = user as Record<string, unknown>
+        token.role    = u.role
+        token.company = u.company
+        token.plan    = u.plan
+        token.userId  = u.id
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        const u = session.user as Record<string, unknown>
+        const u = session.user as unknown as Record<string, unknown>
         u.role    = token.role
         u.company = token.company
         u.plan    = token.plan
