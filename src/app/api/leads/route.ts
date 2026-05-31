@@ -3,7 +3,6 @@ import { db } from '@/lib/db'
 import { leads } from '@/lib/db/schema'
 import { leadFullSchema } from '@/lib/validations/schemas'
 import { scoreLead } from '@/lib/agents/scoring'
-import type { AgentType } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,26 +16,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const data = parsed.data
-    const score = scoreLead(data)
+    const { agentsInterested, ...rest } = parsed.data
+    const score = scoreLead({ ...rest, agentsInterested })
 
     const [lead] = await db.insert(leads).values({
-      fullName:         data.fullName,
-      email:            data.email,
-      company:          data.company,
-      role:             data.role,
-      country:          data.country,
-      industry:         data.industry,
-      companySize:      data.companySize,
-      monthlyVolume:    data.monthlyVolume,
-      hasCRM:           data.hasCRM,
-      crmName:          data.crmName,
-      problem:          data.problem,
-      agentsInterested: data.agentsInterested as unknown as AgentType[],
-      urgency:          data.urgency,
-      budget:           data.budget,
+      ...rest,
+      agentsInterested: agentsInterested as string[],
       score,
-      status: 'new',
+      status: 'new' as const,
     }).returning()
 
     if (process.env.INNGEST_EVENT_KEY && process.env.INNGEST_EVENT_KEY !== '...') {
