@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --shark-dark:  #050d1f;
+  --shark-navy:  #0a1a3a;
+  --shark-blue:  #1a2744;
+  --shark-cyan:  #00d4ff;
+  --shark-gold:  #f0a500;
+  --shark-muted: #8a9bb5;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--shark-dark);
+    color: white;
+    font-family: var(--font-inter), sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-jakarta), sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm
+           bg-shark-cyan text-shark-dark transition-all duration-200
+           hover:bg-opacity-90 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm
+           border border-white/20 text-white/70 transition-all duration-200
+           hover:border-white/40 hover:text-white hover:bg-white/5;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm
+           border border-shark-cyan/40 text-shark-cyan transition-all duration-200
+           hover:bg-shark-cyan/10 hover:border-shark-cyan;
+  }
+
+  .card-dark {
+    @apply bg-white/[0.04] border border-white/10 rounded-2xl
+           hover:border-white/20 transition-all duration-300;
+  }
+
+  .card-glow {
+    @apply bg-white/[0.04] border border-shark-cyan/20 rounded-2xl
+           hover:border-shark-cyan/40 hover:bg-shark-cyan/[0.04] transition-all duration-300;
+  }
+
+  .section { @apply py-20 px-6 max-w-6xl mx-auto; }
+
+  .section-label {
+    @apply text-xs font-semibold tracking-[2px] uppercase text-shark-cyan/70 mb-3;
+  }
+
+  .section-title {
+    @apply font-display font-bold text-4xl md:text-5xl leading-tight tracking-tight;
+  }
+
+  .section-subtitle {
+    @apply text-white/60 text-lg leading-relaxed max-w-2xl;
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  .badge-ready {
+    @apply text-[10px] font-semibold px-2 py-0.5 rounded-full
+           bg-emerald-500/15 text-emerald-400 border border-emerald-500/20
+           tracking-wide uppercase;
+  }
+
+  .badge-hot {
+    @apply text-[10px] font-semibold px-2 py-0.5 rounded-full
+           bg-amber-500/15 text-amber-400 border border-amber-500/20
+           tracking-wide uppercase;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-shark-cyan to-blue-400 bg-clip-text text-transparent;
+  }
+}
+
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--shark-dark); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+::selection { background: rgba(0, 212, 255, 0.2); }
