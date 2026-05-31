@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { streamAgent } from '@/lib/agents/orchestrator'
+import { generateText } from 'ai'
+import { createAnthropic } from '@ai-sdk/anthropic'
 import { chatMessageSchema } from '@/lib/validations/schemas'
 import { db } from '@/lib/db'
 import { agents, conversations, messages, usageLogs } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import type { AgentConfig, ChatMessage } from '@/types'
+import { buildSystemPrompt, getAgentDefinition } from '@/lib/agents/definitions'
+import type { ChatMessage } from '@/types'
 
-export const runtime = 'nodejs'
+export const maxDuration = 30
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
@@ -20,13 +22,11 @@ export async function POST(req: NextRequest) {
 
     const { message, agentId, conversationId } = parsed.data
 
-    // Load agent config
     const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
     if (!agent) {
       return NextResponse.json({ error: 'Agente no encontrado' }, { status: 404 })
     }
 
-    // Load or create conversation
     let convId = conversationId
     let history: ChatMessage[] = []
 
@@ -46,66 +46,44 @@ export async function POST(req: NextRequest) {
       convId = conv.id
     }
 
-    // Save user message
     await db.insert(messages).values({
       conversationId: convId!,
       role:    'user',
       content: message,
     })
 
-    const agentConfig: AgentConfig = {
-      id:           agent.id,
-      clientId:     agent.clientId,
-      type:         agent.type as AgentConfig['type'],
-      name:         agent.name,
-      systemPrompt: agent.systemPrompt,
-      tone:         agent.tone as AgentConfig['tone'],
-      language:     agent.language ?? 'es',
-      contextData:  agent.contextData as Record<string, unknown>,
-      isActive:     agent.isActive ?? true,
-      createdAt:    agent.createdAt!,
-    }
+    const definition = getAgentDefinition(agent.type)
+    const systemPrompt = buildSystemPrompt(
+      agent.systemPrompt || definition?.systemPromptTemplate || '',
+      { tone: agent.tone ?? 'friendly', language: agent.language ?? 'es' }
+    )
 
-    // Stream using Vercel AI SDK
-    const result = streamAgent({ config: agentConfig, history, userMessage: message })
+    const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-    let fullResponse = ''
-
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of result.textStream) {
-            fullResponse += chunk
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`))
-          }
-
-          // Persist assistant message
-          await db.insert(messages).values({
-            conversationId: convId!,
-            role:    'assistant',
-            content: fullResponse,
-          })
-
-          await db.insert(usageLogs).values({
-            clientId: agent.clientId,
-            agentId,
-          })
-
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, conversationId: convId })}\n\n`))
-          controller.close()
-        } catch (err) {
-          controller.error(err)
-        }
-      },
+    const { text } = await generateText({
+      model:    anthropic('claude-sonnet-4-20250514'),
+      system:   systemPrompt,
+      messages: [
+        ...history.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user' as const, content: message },
+      ],
+      maxTokens: 1024,
     })
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type':  'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection':    'keep-alive',
-      },
+    await db.insert(messages).values({
+      conversationId: convId!,
+      role:    'assistant',
+      content: text,
+    })
+
+    await db.insert(usageLogs).values({
+      clientId: agent.clientId,
+      agentId,
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: { response: text, conversationId: convId },
     })
 
   } catch (error) {
