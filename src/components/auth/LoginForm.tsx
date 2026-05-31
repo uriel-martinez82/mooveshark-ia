@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
-export function LoginForm() {
+export function LoginForm({ isAdmin = false }: { isAdmin?: boolean }) {
   const router = useRouter()
-  const [email, setEmail]             = useState('')
-  const [password, setPassword]       = useState('')
+  const [email, setEmail]               = useState('')
+  const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError]             = useState('')
-  const [loading, setLoading]         = useState(false)
+  const [error, setError]               = useState('')
+  const [loading, setLoading]           = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,6 +20,7 @@ export function LoginForm() {
     const res = await signIn('credentials', {
       email,
       password,
+      role:     isAdmin ? 'admin' : 'client',
       redirect: false,
     })
 
@@ -27,7 +28,7 @@ export function LoginForm() {
       setError('Email o contraseña incorrectos')
       setLoading(false)
     } else {
-      router.push('/admin')
+      router.push(isAdmin ? '/admin' : '/dashboard')
       router.refresh()
     }
   }
@@ -36,8 +37,12 @@ export function LoginForm() {
 
   return (
     <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-8">
-      <h1 className="font-display font-bold text-white text-xl mb-1">Ingresar</h1>
-      <p className="text-white/40 text-sm mb-6">Panel de administración</p>
+      <h1 className="font-display font-bold text-white text-xl mb-1">
+        {isAdmin ? 'Panel admin' : 'Mi panel'}
+      </h1>
+      <p className="text-white/40 text-sm mb-6">
+        {isAdmin ? 'Acceso de administración' : 'Accedé a tu agente de IA'}
+      </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
@@ -45,7 +50,7 @@ export function LoginForm() {
           <input
             type="email"
             className={inputClass}
-            placeholder="admin@mooveshark.ia"
+            placeholder={isAdmin ? 'admin@mooveshark.ia' : 'tu@empresa.com'}
             value={email}
             onChange={e => setEmail(e.target.value)}
             required

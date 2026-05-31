@@ -1,6 +1,7 @@
 import { LoginForm } from '@/components/auth/LoginForm'
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: { searchParams: { role?: string } }) {
+  const isAdmin = searchParams.role === 'admin'
   return (
     <div className="min-h-screen bg-shark-dark flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
@@ -10,7 +11,7 @@ export default function LoginPage() {
             Mooveshark <span className="text-shark-cyan">IA</span>
           </span>
         </div>
-        <LoginForm />
+        <LoginForm isAdmin={isAdmin} />
       </div>
     </div>
   )
