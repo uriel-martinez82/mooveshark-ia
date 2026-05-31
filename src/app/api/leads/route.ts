@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       hasCRM:           data.hasCRM,
       crmName:          data.crmName,
       problem:          data.problem,
-      agentsInterested: data.agentsInterested as AgentType[],
+      agentsInterested: data.agentsInterested as unknown as AgentType[],
       urgency:          data.urgency,
       budget:           data.budget,
       score,
