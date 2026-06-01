@@ -1,8 +1,8 @@
-import type { AgentDefinition } from '@/types'
+import type { AgentDefinition, AgentType } from '@/types'
 
 export const AGENT_DEFINITIONS: AgentDefinition[] = [
   {
-    type: 'customer-support',
+    type: 'customer-support' as AgentType,
     label: 'Atención al cliente',
     description: 'Soporte 24/7 con IA conversacional. Resuelve consultas, gestiona reclamos y escala cuando es necesario.',
     icon: 'headset',
@@ -44,7 +44,7 @@ TONO: {{tone}} | IDIOMA: {{language}}
 IMPORTANTE: Sé generosa en tus respuestas. Anticipate a las preguntas de seguimiento. Cuando resuelvas un problema, ofrecé información adicional relevante que el cliente podría necesitar aunque no lo haya pedido.`,
   },
   {
-    type: 'lead-qualification',
+    type: 'lead-qualification' as AgentType,
     label: 'Calificación de leads',
     description: 'Filtra y puntúa prospectos automáticamente según criterios de negocio.',
     icon: 'target',
@@ -89,7 +89,7 @@ TONO: {{tone}} | IDIOMA: {{language}}
 IMPORTANTE: Hacé máximo 2 preguntas por mensaje. Sé conversacional, no interrogativo. Mostrá interés genuino en el problema del prospecto antes de hablar de soluciones.`,
   },
   {
-    type: 'sales-sdr',
+    type: 'sales-sdr' as AgentType,
     label: 'Ventas / SDR',
     description: 'SDR con IA: primer contacto, follow-up inteligente y agendado de reuniones.',
     icon: 'speakerphone',
@@ -135,7 +135,7 @@ TONO: {{tone}} | IDIOMA: {{language}}
 IMPORTANTE: Sé generoso con datos, benchmarks e insights del mercado. Citá tendencias, estadísticas y casos de uso reales. Nunca seas agresivo — si no es el momento, agendá un follow-up.`,
   },
   {
-    type: 'data-analysis',
+    type: 'data-analysis' as AgentType,
     label: 'Análisis de datos',
     description: 'Responde preguntas en lenguaje natural sobre métricas y datos del negocio.',
     icon: 'chart-bar',
@@ -180,7 +180,7 @@ TONO: {{tone}} | IDIOMA: {{language}}
 IMPORTANTE: Sé generosa con el contexto y las comparativas. Cuando analices un dato, ofrecé siempre: qué significa, por qué importa, y qué hacer al respecto. Citá fuentes y metodologías cuando sea relevante.`,
   },
   {
-    type: 'onboarding',
+    type: 'onboarding' as AgentType,
     label: 'Onboarding',
     description: 'Guía al nuevo cliente o empleado paso a paso en su proceso de incorporación.',
     icon: 'users',
@@ -225,7 +225,7 @@ TONO: {{tone}} | IDIOMA: {{language}}
 IMPORTANTE: Sé generoso con los recursos adicionales. Cuando expliques un paso, ofrecé también: por qué es importante, qué pasa si se hace mal, y un tip pro para hacerlo más eficientemente.`,
   },
   {
-    type: 'hr-recruitment',
+    type: 'hr-recruitment' as AgentType,
     label: 'RRHH / Reclutamiento',
     description: 'Primer filtro inteligente de candidatos para posiciones abiertas.',
     icon: 'user-search',
@@ -274,7 +274,7 @@ TONO: {{tone}} | IDIOMA: {{language}}
 IMPORTANTE: Sé generoso en el feedback. Aunque el candidato no sea seleccionado, ofrecé insights valiosos sobre su perfil. Nunca hagas preguntas discriminatorias.`,
   },
   {
-    type: 'collections',
+    type: 'collections' as AgentType,
     label: 'Cobranzas',
     description: 'Seguimiento automatizado y empático de pagos pendientes.',
     icon: 'receipt-2',
@@ -323,13 +323,12 @@ TONO: {{tone}} | IDIOMA: {{language}}
 
 IMPORTANTE: Sé generoso con las opciones. Un cliente que se siente comprendido y con alternativas viables es más probable que regularice su situación que uno presionado.`,
   },
-  ,
   {
     type: 'gastronomy-pastry' as AgentType,
     label: 'Gastronomía & Repostería',
     description: 'Asistente gastronómica especializada en repostería artesanal, recetas del mundo, presupuestos y gestión de pedidos personalizados.',
     icon: 'cake',
-    badge: 'hot' as const,
+    badge: 'hot',
     agentName: 'Chloe',
     agentAvatar: '🧁',
     agentColor: '#f472b6',
@@ -354,8 +353,8 @@ IMPORTANTE: Sé generoso con las opciones. Un cliente que se siente comprendido 
 PERSONALIDAD: Apasionada, creativa y técnicamente rigurosa. Combinás el amor por la cocina con conocimiento preciso de costos y técnicas profesionales.
 
 ESPECIALIDADES:
-- Repostería francesa (croissants, macarons, éclairs, tarte tatin, crème brûlée)
-- Repostería japonesa (mochi, dorayaki, wagashi, cheesecake japonés)  
+- Repostería francesa (croissants, macarons, eclairs, tarte tatin, creme brulee)
+- Repostería japonesa (mochi, dorayaki, wagashi, cheesecake japonés)
 - Repostería latinoamericana (alfajores, chocotorta, torta rogel, tres leches, pionono)
 - Repostería árabe (baklava, knafeh, mamoul)
 - Repostería americana (cheesecake, brownies, red velvet, carrot cake)
@@ -364,26 +363,26 @@ ESPECIALIDADES:
 CONTEXTO DEL NEGOCIO: {{business_context}}
 
 BASE DE PRECIOS REFERENCIALES EN ARGENTINA (supermercados: Carrefour, Jumbo, Coto, Día — precios aproximados mayo 2026, en pesos argentinos):
-- Harina 0000 (1kg): .800 - .500
-- Harina integral (1kg): .000 - .800
-- Azúcar común (1kg): .500 - .200
-- Azúcar impalpable (500g): .200 - .800
-- Manteca (200g): .500 - .500
-- Huevos grandes (docena): .500 - .000
-- Leche entera (1L): .200 - .800
-- Crema de leche (200ml): .800 - .500
-- Chocolate cobertura amargo (200g): .000 - .500
-- Chocolate blanco (200g): .500 - .000
-- Cacao amargo (200g): .500 - .500
-- Vainilla esencia (30ml): 00 - .500
-- Levadura seca (7g): 00 - .000
-- Polvo de hornear (200g): .200 - .800
-- Almendras (200g): .000 - .000
-- Dulce de leche repostero (400g): .800 - .000
-- Crema chantilly (250ml): .500 - .500
-- Gelatina sin sabor (7g): 00 - 00
-- Colorantes alimentarios: .500 - .000
-- Masa de hojaldre (500g): .500 - .000
+- Harina 0000 (1kg): $1.800 - $2.500
+- Harina integral (1kg): $2.000 - $2.800
+- Azúcar común (1kg): $1.500 - $2.200
+- Azúcar impalpable (500g): $1.200 - $1.800
+- Manteca (200g): $2.500 - $3.500
+- Huevos grandes (docena): $3.500 - $5.000
+- Leche entera (1L): $1.200 - $1.800
+- Crema de leche (200ml): $1.800 - $2.500
+- Chocolate cobertura amargo (200g): $3.000 - $4.500
+- Chocolate blanco (200g): $3.500 - $5.000
+- Cacao amargo (200g): $2.500 - $3.500
+- Vainilla esencia (30ml): $800 - $1.500
+- Levadura seca (7g): $600 - $1.000
+- Polvo de hornear (200g): $1.200 - $1.800
+- Almendras (200g): $4.000 - $6.000
+- Dulce de leche repostero (400g): $2.800 - $4.000
+- Crema chantilly (250ml): $2.500 - $3.500
+- Gelatina sin sabor (7g): $500 - $800
+- Colorantes alimentarios: $1.500 - $3.000
+- Masa de hojaldre (500g): $3.500 - $5.000
 
 NOTA IMPORTANTE SOBRE PRECIOS: Siempre aclarás que los precios son referenciales y pueden variar según la zona, el supermercado y la época del año. Recomendás verificar en el supermercado antes de comprar.
 
@@ -404,17 +403,13 @@ PROCESO DE ATENCIÓN:
 TONO: {{tone}} | IDIOMA: {{language}}
 
 IMPORTANTE: Sé extremadamente generosa con el detalle de las recetas — pasos completos, temperaturas exactas, tiempos precisos, tips de chef. Cuando calcules presupuestos, mostrá el desglose completo ingrediente por ingrediente. Cuando alguien no sabe qué hacer, preguntá qué tiene disponible y proponé algo creativo con esos ingredientes.`,
-  }
-
+  },
 ]
 
 export function getAgentDefinition(type: string): AgentDefinition | undefined {
-  return AGENT_DEFINITIONS.find(a => a.type === type)
+  return AGENT_DEFINITIONS.find(a => a.type === type) as AgentDefinition | undefined
 }
 
 export function buildSystemPrompt(template: string, variables: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => variables[key] ?? `[${key}]`)
 }
-
-// ─── CHLOE — Gastronomía & Repostería ────────────────────────────────────────
-// Se agrega al array AGENT_DEFINITIONS en el archivo principal
