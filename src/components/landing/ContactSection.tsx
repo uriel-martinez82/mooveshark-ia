@@ -58,7 +58,7 @@ export function ContactSection() {
         country:          form.country,
         industry:         form.industry,
         companySize:      form.dailyVolume,
-        monthlyVolume:    form.dailyVolume,
+        monthlyVolume:    form.dailyVolume === '1-10' ? 'less-10' : form.dailyVolume === '11-50' ? '10-100' : form.dailyVolume === '51-200' ? '100-1000' : '1000+',
         hasCRM:           form.hasTool === 'si',
         crmName:          form.toolName,
         problem:          form.agentDescription || form.primaryUse || 'No especificado',
@@ -231,8 +231,8 @@ export function ContactSection() {
                     <select className={selectClass} value={form.dailyVolume} onChange={e => update('dailyVolume', e.target.value)}>
                       <option value="">Seleccionar...</option>
                       <option value="1-10">Menos de 10</option>
-                      <option value="10-50">10 a 50</option>
-                      <option value="50-200">50 a 200</option>
+                      <option value="11-50">10 a 50</option>
+                      <option value="51-200">50 a 200</option>
                       <option value="200+">Más de 200</option>
                     </select>
                   </div>
