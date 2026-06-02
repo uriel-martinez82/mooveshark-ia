@@ -3,14 +3,18 @@
 import { useState } from 'react'
 
 const AGENTS = [
-  { value: 'customer-support',   label: 'Atención al cliente', avatar: '🎧', desc: 'Soporte 24/7, reclamos y consultas' },
-  { value: 'lead-qualification', label: 'Calificación de leads', avatar: '🎯', desc: 'Filtrá y puntuá prospectos' },
-  { value: 'sales-sdr',          label: 'Ventas / SDR', avatar: '💼', desc: 'Prospección y cierre de ventas' },
-  { value: 'data-analysis',      label: 'Análisis de datos', avatar: '📊', desc: 'Insights y reportes automáticos' },
-  { value: 'onboarding',         label: 'Onboarding', avatar: '🧭', desc: 'Incorporación de clientes o empleados' },
-  { value: 'hr-recruitment',     label: 'RRHH / Reclutamiento', avatar: '🔍', desc: 'Filtro inteligente de candidatos' },
-  { value: 'collections',        label: 'Cobranzas', avatar: '💰', desc: 'Recupero de deuda con empatía' },
-  { value: 'gastronomy-pastry',  label: 'Gastronomía & Repostería', avatar: '🧁', desc: 'Recetas, presupuestos y pedidos' },
+  { value: 'customer-support',   label: 'Atención al cliente',     avatar: '🎧', desc: 'Soporte 24/7, reclamos y consultas' },
+  { value: 'lead-qualification', label: 'Calificación de leads',   avatar: '🎯', desc: 'Filtrá y puntuá prospectos' },
+  { value: 'sales-sdr',          label: 'Ventas / SDR',            avatar: '💼', desc: 'Prospección y cierre de ventas' },
+  { value: 'data-analysis',      label: 'Análisis de datos',       avatar: '📊', desc: 'Insights y reportes automáticos' },
+  { value: 'onboarding',         label: 'Onboarding',              avatar: '🧭', desc: 'Incorporación de clientes o empleados' },
+  { value: 'hr-recruitment',     label: 'RRHH / Reclutamiento',    avatar: '🔍', desc: 'Filtro inteligente de candidatos' },
+  { value: 'collections',        label: 'Cobranzas',               avatar: '💰', desc: 'Recupero de deuda con empatía' },
+  { value: 'gastronomy-pastry',  label: 'Gastronomía & Repostería',avatar: '🧁', desc: 'Recetas, presupuestos y pedidos' },
+  { value: 'education',          label: 'Educación',               avatar: '📚', desc: 'Clases, planificación y contenido educativo' },
+  { value: 'legal',              label: 'Legal / Compliance',      avatar: '⚖️', desc: 'Consultas legales y cumplimiento normativo' },
+  { value: 'health',             label: 'Salud & Bienestar',       avatar: '🏥', desc: 'Orientación médica y gestión de pacientes' },
+  { value: 'other',              label: 'Otro / Personalizado',    avatar: '✨', desc: 'Describí tu caso y lo creamos a medida' },
 ]
 
 const USES: Record<string, string[]> = {
@@ -22,19 +26,21 @@ const USES: Record<string, string[]> = {
   'hr-recruitment':     ['Entrevistas iniciales', 'Filtro de CVs', 'Evaluación de soft skills', 'Coordinación de entrevistas'],
   'collections':        ['Recordatorios de pago', 'Negociación de planes de pago', 'Gestión de deuda vencida', 'Retención de clientes'],
   'gastronomy-pastry':  ['Tomar pedidos personalizados', 'Consultar recetas y técnicas', 'Calcular presupuestos', 'Gestionar restricciones dietarias'],
+  'education':          ['Planificar actividades y clases', 'Responder dudas de alumnos', 'Generar material didáctico', 'Gestionar consultas de inscripción'],
+  'legal':              ['Consultas legales básicas', 'Revisión de contratos', 'Compliance y normativas', 'Orientación sobre procesos legales'],
+  'health':             ['Orientación sobre síntomas', 'Gestión de turnos', 'Seguimiento de pacientes', 'Información sobre tratamientos'],
+  'other':              ['Describilo en el campo de tareas específicas'],
 }
 
 export function ContactSection() {
   const [step, setStep]     = useState(1)
   const [loading, setLoading] = useState(false)
   const [done, setDone]     = useState(false)
+  const [score, setScore]   = useState<number | null>(null)
   const [form, setForm]     = useState({
-    // Paso 1
     fullName: '', email: '', company: '', industry: '', country: '',
-    // Paso 2
     agentType: '', primaryUse: '', dailyVolume: '', hasTool: '', toolName: '',
     agentDescription: '',
-    // Paso 3
     urgency: '', budget: '', howDidYouFindUs: '',
   })
 
@@ -43,6 +49,7 @@ export function ContactSection() {
   const handleSubmit = async () => {
     setLoading(true)
     try {
+      const selectedAgent = AGENTS.find(a => a.value === form.agentType)
       const payload = {
         fullName:         form.fullName,
         email:            form.email,
@@ -59,12 +66,16 @@ export function ContactSection() {
         urgency:          form.urgency || 'exploring',
         budget:           form.budget || 'undefined',
       }
-      const res = await fetch('/api/leads', {
-        method: 'POST',
+      const res  = await fetch('/api/leads', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body:    JSON.stringify(payload),
       })
-      if (res.ok) setDone(true)
+      const data = await res.json()
+      if (data.success) {
+        setScore(data.data.score)
+        setDone(true)
+      }
     } catch (e) {
       console.error(e)
     } finally {
@@ -77,7 +88,7 @@ export function ContactSection() {
   const labelClass  = "block text-xs font-medium text-white/50 mb-1.5 tracking-wide"
 
   const canNext1 = form.fullName && form.email && form.company && form.industry && form.country
-  const canNext2 = form.agentType && form.primaryUse && form.dailyVolume
+  const canNext2 = form.agentType && (form.agentType === 'other' || form.primaryUse) && form.dailyVolume
 
   return (
     <section id="contacto" className="py-24 px-6 border-t border-white/5">
@@ -91,10 +102,27 @@ export function ContactSection() {
         </div>
 
         {done ? (
-          <div className="text-center py-16 card-dark rounded-2xl">
-            <div className="text-4xl mb-4">🦈</div>
-            <h3 className="font-display font-bold text-xl text-white mb-2">¡Listo! Recibimos tu consulta</h3>
-            <p className="text-white/50 text-sm">Te contactamos en menos de 24 horas con tu agente configurado.</p>
+          <div className="text-center py-16 card-dark rounded-2xl px-8">
+            <div className="w-20 h-20 rounded-2xl bg-shark-cyan/10 border border-shark-cyan/20 flex items-center justify-center text-4xl mx-auto mb-6">🦈</div>
+            <h3 className="font-display font-bold text-2xl text-white mb-3">¡Consulta recibida!</h3>
+            <p className="text-white/60 mb-6 leading-relaxed">
+              Recibimos tu solicitud correctamente.<br/>
+              Un especialista de Mooveshark IA te va a contactar en menos de <strong className="text-white">24 horas</strong> para configurar tu agente.
+            </p>
+            {score !== null && (
+              <div className="inline-flex items-center gap-2 bg-shark-cyan/10 border border-shark-cyan/20 rounded-xl px-5 py-3 mb-6">
+                <span className="text-2xl">{score >= 70 ? '🔥' : score >= 40 ? '⚡' : '⭐'}</span>
+                <div className="text-left">
+                  <p className="text-xs text-white/40">Prioridad de tu solicitud</p>
+                  <p className="text-shark-cyan font-semibold">
+                    {score >= 70 ? 'Alta — te contactamos hoy' : score >= 40 ? 'Media — te contactamos mañana' : 'Normal — en 24hs'}
+                  </p>
+                </div>
+              </div>
+            )}
+            <p className="text-white/30 text-xs">
+              Revisá tu bandeja de entrada — te enviaremos una confirmación a <strong className="text-white/50">{form.email}</strong>
+            </p>
           </div>
         ) : (
           <div className="card-dark rounded-2xl p-8">
@@ -103,8 +131,10 @@ export function ContactSection() {
             <div className="flex items-center gap-2 mb-8">
               {['Tu empresa', 'Tu agente', 'Detalles'].map((label, i) => (
                 <div key={i} className="flex items-center gap-2 flex-1">
-                  <div className={`flex items-center gap-2 ${step > i + 1 ? 'cursor-pointer' : ''}`}
-                    onClick={() => step > i + 1 && setStep(i + 1)}>
+                  <div
+                    className={`flex items-center gap-2 ${step > i + 1 ? 'cursor-pointer' : ''}`}
+                    onClick={() => step > i + 1 && setStep(i + 1)}
+                  >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                       step === i + 1 ? 'bg-shark-cyan text-shark-dark' :
                       step > i + 1  ? 'bg-emerald-400 text-shark-dark' : 'bg-white/10 text-white/40'
@@ -160,7 +190,6 @@ export function ContactSection() {
               <div className="flex flex-col gap-5">
                 <h3 className="font-display font-semibold text-white text-base mb-1">¿Qué agente necesitás?</h3>
 
-                {/* Agent selector — visual cards */}
                 <div>
                   <label className={labelClass}>Elegí el tipo de agente principal</label>
                   <div className="grid grid-cols-2 gap-2 mt-1">
@@ -176,7 +205,7 @@ export function ContactSection() {
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-base">{a.avatar}</span>
-                          <span className={`text-xs font-semibold ${form.agentType === a.value ? 'text-shark-cyan' : 'text-white/80'}`}>
+                          <span className={`text-xs font-semibold leading-tight ${form.agentType === a.value ? 'text-shark-cyan' : 'text-white/80'}`}>
                             {a.label}
                           </span>
                         </div>
@@ -186,8 +215,7 @@ export function ContactSection() {
                   </div>
                 </div>
 
-                {/* Primary use — dynamic based on agent type */}
-                {form.agentType && (
+                {form.agentType && form.agentType !== 'other' && (
                   <div>
                     <label className={labelClass}>¿Para qué lo usarías principalmente?</label>
                     <select className={selectClass} value={form.primaryUse} onChange={e => update('primaryUse', e.target.value)}>
@@ -225,17 +253,24 @@ export function ContactSection() {
                   </div>
                 )}
 
-                {/* Free text — optional */}
                 <div>
                   <label className={labelClass}>
-                    Describí las tareas específicas que debería realizar tu agente
-                    <span className="ml-1 text-white/25 font-normal">(opcional)</span>
+                    {form.agentType === 'other'
+                      ? 'Describí qué necesitás que haga tu agente'
+                      : 'Tareas específicas que debería realizar'
+                    }
+                    {form.agentType !== 'other' && <span className="ml-1 text-white/25 font-normal">(opcional)</span>}
                   </label>
                   <textarea
-                    className={inputClass + " resize-none h-20"}
-                    placeholder="Ej: Que pueda consultar el estado de pedidos, responder preguntas sobre mi menú y tomar reservas para cenas..."
+                    className={inputClass + " resize-none h-24"}
+                    placeholder={
+                      form.agentType === 'other'
+                        ? 'Ej: Quiero un agente para mis clases de matemáticas que me ayude a planificar actividades, generar ejercicios y responder dudas de mis alumnos...'
+                        : 'Ej: Que pueda consultar el estado de pedidos, responder preguntas sobre mi menú y tomar reservas...'
+                    }
                     value={form.agentDescription}
                     onChange={e => update('agentDescription', e.target.value)}
+                    required={form.agentType === 'other'}
                   />
                 </div>
 
@@ -284,16 +319,19 @@ export function ContactSection() {
                   </div>
                 </div>
 
-                {/* Summary */}
+                {/* Resumen */}
                 <div className="bg-white/3 border border-white/8 rounded-xl p-4 mt-1">
                   <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-3">Resumen de tu solicitud</p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div><span className="text-white/40">Empresa:</span> <span className="text-white/80">{form.company}</span></div>
                     <div><span className="text-white/40">Rubro:</span> <span className="text-white/80">{form.industry}</span></div>
                     <div><span className="text-white/40">Agente:</span> <span className="text-white/80">{AGENTS.find(a => a.value === form.agentType)?.label}</span></div>
-                    <div><span className="text-white/40">Uso:</span> <span className="text-white/80">{form.primaryUse}</span></div>
+                    {form.primaryUse && <div><span className="text-white/40">Uso:</span> <span className="text-white/80">{form.primaryUse}</span></div>}
                     {form.agentDescription && (
-                      <div className="col-span-2"><span className="text-white/40">Tareas: </span><span className="text-white/80">{form.agentDescription.slice(0, 80)}{form.agentDescription.length > 80 ? '...' : ''}</span></div>
+                      <div className="col-span-2">
+                        <span className="text-white/40">Descripción: </span>
+                        <span className="text-white/80">{form.agentDescription.slice(0, 100)}{form.agentDescription.length > 100 ? '...' : ''}</span>
+                      </div>
                     )}
                   </div>
                 </div>
