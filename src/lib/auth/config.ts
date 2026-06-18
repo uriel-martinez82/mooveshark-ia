@@ -15,6 +15,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         role:     { label: 'Role',     type: 'text' },
       },
       async authorize(credentials) {
+        console.log('[auth] ADMIN_EMAIL:', process.env.ADMIN_EMAIL)
+        console.log('[auth] ADMIN_PASSWORD length:', process.env.ADMIN_PASSWORD?.length)
+        console.log('[auth] credentials role:', credentials?.role)
+        console.log('[auth] credentials email:', credentials?.email)
+
         const parsed = z.object({
           email:    z.string().email(),
           password: z.string().min(6),
