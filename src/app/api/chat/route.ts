@@ -67,8 +67,10 @@ export async function POST(req: NextRequest) {
         }\n\nUsá este contexto para dar respuestas más personalizadas y evitar repetir información ya discutida.`
       : ''
 
+    const conciseInstruction = '\n\nIMPORTANTE: Dá respuestas breves y directas, máximo 250-300 palabras. Si la respuesta requiere muchos pasos o detalle (como una receta extensa), resumí lo esencial y ofrecé continuar con más detalle si el usuario lo pide.'
+
     const systemPrompt = buildSystemPrompt(
-      (agent.systemPrompt || definition?.systemPromptTemplate || '') + memoryContext,
+      (agent.systemPrompt || definition?.systemPromptTemplate || '') + memoryContext + conciseInstruction,
       {
         company_name:     agent.name,
         business_context: `Agente de ${definition?.label ?? agent.type}`,
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
         ...history.map(m => ({ role: m.role, content: m.content })),
         { role: 'user' as const, content: message },
       ],
-      maxTokens: 2048,
+      maxTokens: 1024,
       onFinish: async ({ text }) => {
         await db.insert(messages).values({
           conversationId: convId!,
