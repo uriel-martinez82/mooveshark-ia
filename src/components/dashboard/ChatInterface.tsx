@@ -74,33 +74,45 @@ export function ChatInterface({ agentId, agentName, agentType }: {
     setLoading(true)
     setShowInfo(false)
 
+    const assistantId = (Date.now() + 1).toString()
+    setMessages(prev => [...prev, {
+      role: 'assistant', content: '',
+      id: assistantId, timestamp: new Date(),
+    }])
+
     try {
-      const res  = await fetch('/api/chat', {
+      const res = await fetch('/api/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ message: msg, agentId, conversationId }),
       })
-      const data = await res.json()
 
-      if (data.success) {
-        setMessages(prev => [...prev, {
-          role: 'assistant', content: data.data.response,
-          id: (Date.now() + 1).toString(), timestamp: new Date(),
-        }])
-        if (data.data.conversationId) setConversationId(data.data.conversationId)
-      } else {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: 'Hubo un error al procesar tu mensaje. Por favor intentá de nuevo.',
-          id: (Date.now() + 1).toString(), timestamp: new Date(),
-        }])
+      if (!res.ok || !res.body) {
+        throw new Error('Error en la respuesta')
       }
+
+      const newConvId = res.headers.get('X-Conversation-Id')
+      if (newConvId) setConversationId(newConvId)
+
+      const reader  = res.body.getReader()
+      const decoder = new TextDecoder()
+      let fullText  = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        fullText += decoder.decode(value, { stream: true })
+        setMessages(prev => prev.map(m =>
+          m.id === assistantId ? { ...m, content: fullText } : m
+        ))
+      }
+
     } catch {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Error de conexión. Por favor revisá tu internet e intentá de nuevo.',
-        id: (Date.now() + 1).toString(), timestamp: new Date(),
-      }])
+      setMessages(prev => prev.map(m =>
+        m.id === assistantId
+          ? { ...m, content: 'Hubo un error al procesar tu mensaje. Por favor intentá de nuevo.' }
+          : m
+      ))
     } finally {
       setLoading(false)
       inputRef.current?.focus()

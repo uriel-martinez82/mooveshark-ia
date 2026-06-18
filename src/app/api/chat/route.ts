@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { generateText } from 'ai'
+import { NextRequest } from 'next/server'
+import { streamText } from 'ai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { chatMessageSchema } from '@/lib/validations/schemas'
 import { db } from '@/lib/db'
@@ -17,21 +17,20 @@ export async function POST(req: NextRequest) {
 
     const parsed = chatMessageSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
+      return new Response(JSON.stringify({ error: 'Datos inválidos' }), { status: 400 })
     }
 
     const { message, agentId, conversationId } = parsed.data
 
     const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
     if (!agent) {
-      return NextResponse.json({ error: 'Agente no encontrado' }, { status: 404 })
+      return new Response(JSON.stringify({ error: 'Agente no encontrado' }), { status: 404 })
     }
 
     let convId = conversationId
     let history: ChatMessage[] = []
 
     if (convId) {
-      // Load last 20 messages for memory
       const msgs = await db.select().from(messages)
         .where(eq(messages.conversationId, convId))
         .orderBy(desc(messages.createdAt))
@@ -59,7 +58,6 @@ export async function POST(req: NextRequest) {
 
     const definition = getAgentDefinition(agent.type)
 
-    // Build memory context from history
     const memoryContext = history.length > 2
       ? `\n\nCONTEXTO DE ESTA CONVERSACIÓN:\nLlevamos ${history.length} mensajes en esta sesión. El usuario ha mencionado o consultado sobre: ${
           history
@@ -88,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-    const { text } = await generateText({
+    const result = streamText({
       model:    anthropic('claude-sonnet-4-6'),
       system:   systemPrompt,
       messages: [
@@ -96,26 +94,27 @@ export async function POST(req: NextRequest) {
         { role: 'user' as const, content: message },
       ],
       maxTokens: 2048,
+      onFinish: async ({ text }) => {
+        await db.insert(messages).values({
+          conversationId: convId!,
+          role:    'assistant',
+          content: text,
+        })
+        await db.insert(usageLogs).values({
+          clientId: agent.clientId,
+          agentId,
+        })
+      },
     })
 
-    await db.insert(messages).values({
-      conversationId: convId!,
-      role:    'assistant',
-      content: text,
-    })
-
-    await db.insert(usageLogs).values({
-      clientId: agent.clientId,
-      agentId,
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: { response: text, conversationId: convId },
+    return result.toTextStreamResponse({
+      headers: {
+        'X-Conversation-Id': convId!,
+      },
     })
 
   } catch (error) {
     console.error('[POST /api/chat]', error)
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    return new Response(JSON.stringify({ error: 'Error interno' }), { status: 500 })
   }
 }
