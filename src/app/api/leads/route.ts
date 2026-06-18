@@ -27,59 +27,66 @@ export async function POST(req: NextRequest) {
     }).returning()
 
     // Enviar email de notificación al admin
-    if (process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
-      try {
-        const { Resend } = await import('resend')
-        const resend = new Resend(process.env.RESEND_API_KEY)
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD && process.env.ADMIN_EMAIL) {
+    try {
+      const nodemailer = await import('nodemailer')
 
-        const agentLabel = Array.isArray(data.agentsInterested)
-          ? data.agentsInterested.join(', ')
-          : 'No especificado'
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+      })
 
-        const scoreBadge = score >= 70 ? '🔥 Caliente' : score >= 40 ? '⚡ Tibio' : '❄️ Frío'
+      const agentLabel = Array.isArray(data.agentsInterested)
+        ? data.agentsInterested.join(', ')
+        : 'No especificado'
 
-        await resend.emails.send({
-          from:    process.env.RESEND_FROM ?? 'Mooveshark IA <onboarding@resend.dev>',
-          to:      process.env.ADMIN_EMAIL,
-          subject: `🦈 Nuevo lead: ${data.company} — Score ${score}/100 ${scoreBadge}`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0a1428; color: #fff; padding: 32px; border-radius: 12px;">
-              <h1 style="color: #00d4ff; margin-bottom: 4px;">🦈 Mooveshark IA</h1>
-              <p style="color: #666; margin-top: 0;">Nuevo lead recibido</p>
+      const scoreBadge = score >= 70 ? '🔥 Caliente' : score >= 40 ? '⚡ Tibio' : '❄️ Frío'
 
-              <div style="background: #ffffff10; border-radius: 8px; padding: 20px; margin: 24px 0;">
-                <h2 style="margin: 0 0 16px; color: #fff;">${data.fullName}</h2>
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Empresa:</b> ${data.company}</p>
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Email:</b> ${data.email}</p>
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Industria:</b> ${data.industry}</p>
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">País:</b> ${data.country}</p>
-              </div>
+      await transporter.sendMail({
+        from: `"Mooveshark IA 🦈" <${process.env.GMAIL_USER}>`,
+        to: process.env.ADMIN_EMAIL,
+        subject: `🦈 Nuevo lead: ${data.company} — Score ${score}/100 ${scoreBadge}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0a1428; color: #fff; padding: 32px; border-radius: 12px;">
+            <h1 style="color: #00d4ff; margin-bottom: 4px;">🦈 Mooveshark IA</h1>
+            <p style="color: #666; margin-top: 0;">Nuevo lead recibido</p>
 
-              <div style="background: #ffffff10; border-radius: 8px; padding: 20px; margin: 24px 0;">
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Agente solicitado:</b> ${agentLabel}</p>
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Urgencia:</b> ${data.urgency}</p>
-                <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Presupuesto:</b> ${data.budget}</p>
-                <p style="margin: 8px 0 4px; color: #aaa;"><b style="color:#fff">Descripción:</b></p>
-                <p style="margin: 0; color: #ccc; font-style: italic;">${data.problem || 'No especificado'}</p>
-              </div>
-
-              <div style="text-align: center; margin: 24px 0;">
-                <span style="font-size: 32px; font-weight: bold; color: ${score >= 70 ? '#00d4ff' : score >= 40 ? '#f0a500' : '#666'};">
-                  ${scoreBadge} — ${score}/100
-                </span>
-              </div>
-
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin"
-                 style="display:block; background:#00d4ff; color:#0a1428; text-align:center; padding:14px; border-radius:8px; text-decoration:none; font-weight:bold;">
-                Ver en el panel admin →
-              </a>
+            <div style="background: #ffffff10; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <h2 style="margin: 0 0 16px; color: #fff;">${data.fullName}</h2>
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Empresa:</b> ${data.company}</p>
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Email:</b> ${data.email}</p>
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Industria:</b> ${data.industry}</p>
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">País:</b> ${data.country}</p>
             </div>
-          `,
-        })
-      } catch (e) {
-        console.warn('[resend] Email no enviado:', e)
-      }
+
+            <div style="background: #ffffff10; border-radius: 8px; padding: 20px; margin: 24px 0;">
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Agente solicitado:</b> ${agentLabel}</p>
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Urgencia:</b> ${data.urgency}</p>
+              <p style="margin: 4px 0; color: #aaa;"><b style="color:#fff">Presupuesto:</b> ${data.budget}</p>
+              <p style="margin: 8px 0 4px; color: #aaa;"><b style="color:#fff">Descripción:</b></p>
+              <p style="margin: 0; color: #ccc; font-style: italic;">${data.problem || 'No especificado'}</p>
+            </div>
+
+            <div style="text-align: center; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: bold; color: ${score >= 70 ? '#00d4ff' : score >= 40 ? '#f0a500' : '#666'};">
+                ${scoreBadge} — ${score}/100
+              </span>
+            </div>
+
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin"
+              style="display:block; background:#00d4ff; color:#0a1428; text-align:center; padding:14px; border-radius:8px; text-decoration:none; font-weight:bold;">
+              Ver en el panel admin →
+            </a>
+          </div>
+        `,
+      })
+    } catch (e) {
+      console.warn('[nodemailer] Email no enviado:', e)
     }
+  }
 
     return NextResponse.json({
       success: true,
