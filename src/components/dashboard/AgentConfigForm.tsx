@@ -19,6 +19,10 @@ const AGENT_TYPE_LABELS: Record<string, string> = {
   'onboarding':         'Onboarding',
   'hr-recruitment':     'RRHH / Reclutamiento',
   'collections':        'Cobranzas',
+  'gastronomy-pastry':  'Gastronomía & Repostería',
+  'education':          'Educación',
+  'legal':              'Legal / Compliance',
+  'health':             'Salud & Bienestar',
 }
 
 export function AgentConfigForm({ agent }: { agent: Agent }) {

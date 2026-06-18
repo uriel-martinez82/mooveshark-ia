@@ -44,7 +44,19 @@ export type ChatMessageData = z.infer<typeof chatMessageSchema>
 
 // ─── Agent config ─────────────────────────────────────────────────────────────
 export const agentConfigSchema = z.object({
-  type:         z.enum(['customer-support','lead-qualification','sales-sdr','data-analysis','onboarding','hr-recruitment','collections']),
+  type: z.enum([
+    'customer-support',
+    'lead-qualification',
+    'sales-sdr',
+    'data-analysis',
+    'onboarding',
+    'hr-recruitment',
+    'collections',
+    'gastronomy-pastry',
+    'education',
+    'legal',
+    'health',
+  ]),
   name:         z.string().min(2).max(100),
   systemPrompt: z.string().optional(),
   tone:         z.enum(['formal', 'friendly', 'neutral']).default('friendly'),

@@ -31,6 +31,9 @@ export type AgentType =
   | 'hr-recruitment'
   | 'collections'
   | 'gastronomy-pastry'
+  | 'education'
+  | 'legal'
+  | 'health'
 
 export interface AgentConfig {
   id: string
@@ -50,7 +53,7 @@ export interface AgentDefinition {
   label: string
   description: string
   icon: string
-  badge: 'ready' | 'hot'
+  badge: 'ready' | 'hot' | 'new'
   agentName: string
   agentAvatar: string
   agentColor: string

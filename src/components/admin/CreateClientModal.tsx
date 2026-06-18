@@ -11,6 +11,10 @@ const AGENT_TYPES = [
   { value: 'onboarding',         label: 'Onboarding' },
   { value: 'hr-recruitment',     label: 'RRHH / Reclutamiento' },
   { value: 'collections',        label: 'Cobranzas' },
+  { value: 'gastronomy-pastry',  label: 'Gastronomía & Repostería' },
+  { value: 'education',          label: 'Educación' },
+  { value: 'legal',              label: 'Legal / Compliance' },
+  { value: 'health',             label: 'Salud & Bienestar' },
 ]
 
 export function CreateClientModal() {

@@ -30,6 +30,10 @@ export default async function DashboardPage() {
     'onboarding':         'Onboarding',
     'hr-recruitment':     'RRHH / Reclutamiento',
     'collections':        'Cobranzas',
+    'gastronomy-pastry':  'Gastronomía & Repostería',
+    'education':          'Educación',
+    'legal':              'Legal / Compliance',
+    'health':             'Salud & Bienestar',
   }
 
   return (

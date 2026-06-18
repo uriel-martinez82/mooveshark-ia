@@ -12,6 +12,9 @@ const AGENTS = [
   { value: 'hr-recruitment',     label: 'RRHH / Reclutamiento',     avatar: '🔍' },
   { value: 'collections',        label: 'Cobranzas',                avatar: '💰' },
   { value: 'gastronomy-pastry',  label: 'Gastronomía & Repostería', avatar: '🧁' },
+  { value: 'education',          label: 'Educación',                avatar: '📚' },
+  { value: 'legal',              label: 'Legal / Compliance',       avatar: '⚖️' },
+  { value: 'health',             label: 'Salud & Bienestar',        avatar: '🏥' },
 ]
 
 interface Lead {
