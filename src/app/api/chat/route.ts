@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const { text } = await generateText({
-      model:    anthropic('claude-sonnet-4-20250514'),
+      model:    anthropic('claude-sonnet-4-6'),
       system:   systemPrompt,
       messages: [
         ...history.map(m => ({ role: m.role, content: m.content })),
