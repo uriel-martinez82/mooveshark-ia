@@ -55,6 +55,7 @@ export function ConvertLeadModal({ lead, onClose }: { lead: Lead; onClose: () =>
           agentName: agentName || AGENTS.find(a => a.value === agentType)?.label,
           tone,
           language,
+          leadId:    lead.id,
         }),
       })
       const data = await res.json()
