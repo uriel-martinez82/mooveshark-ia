@@ -31,8 +31,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { email, password, role } = parsed.data
 
         // Admin login — no DB needed
-        if (role === 'admin') {
-          if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        if (email === ADMIN_EMAIL) {
+          if (password === ADMIN_PASSWORD) {
             return { id: 'admin', email, name: 'Admin', role: 'admin' }
           }
           return null
