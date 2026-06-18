@@ -2,7 +2,7 @@ import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
 
-const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? 'admin@mooveshark.ia'
+const ADMIN_EMAIL    = process.env.ADMIN_LOGIN_EMAIL    ?? 'admin@mooveshark.ia'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'changeme123'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
