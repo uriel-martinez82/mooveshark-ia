@@ -5,7 +5,7 @@ export const leadStep1Schema = z.object({
   fullName: z.string().min(2, 'Nombre requerido'),
   email:    z.string().email('Email inválido'),
   company:  z.string().min(2, 'Empresa requerida'),
-  role:     z.string().min(2, 'Cargo requerido'),
+  role:     z.string().optional().default('No especificado'),
   country:  z.string().min(2, 'País requerido'),
 })
 
@@ -18,7 +18,7 @@ export const leadStep2Schema = z.object({
 })
 
 export const leadStep3Schema = z.object({
-  problem:          z.string().min(20, 'Describí tu problema (mínimo 20 caracteres)'),
+  problem:          z.string().min(1, 'Campo requerido'),
   agentsInterested: z.array(z.string()).min(1, 'Seleccioná al menos un agente'),
   urgency:          z.enum(['immediate', '1-3months', 'exploring']),
   budget:           z.enum(['under500', '500-1500', '1500plus', 'undefined']),
