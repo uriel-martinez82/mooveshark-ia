@@ -4,6 +4,7 @@ import { desc, eq } from 'drizzle-orm'
 import { CreateClientModal } from '@/components/admin/CreateClientModal'
 import { auth } from '@/lib/auth/config'
 import { LogoutButton } from '@/components/auth/LogoutButton'
+import { ResetPasswordButton } from '@/components/admin/ResetPasswordButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -159,8 +160,8 @@ export default async function AdminClientsPage() {
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
                       {client.status === 'trial' && (
-                        <span className="text-[10px] font-medium px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-pointer hover:bg-emerald-500/20 transition-all whitespace-nowrap">
-                          → Activar
+                        <span className="text-[10px] font-medium px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                          En trial
                         </span>
                       )}
                       {client.status === 'active' && (
@@ -168,11 +169,7 @@ export default async function AdminClientsPage() {
                           ✓ Activo
                         </span>
                       )}
-                      {(client.status === 'paused' || client.status === 'cancelled') && (
-                        <span className="text-[10px] font-medium px-2.5 py-1 rounded-lg bg-white/5 text-white/30 border border-white/10 whitespace-nowrap">
-                          {STATUS_LABELS[client.status]}
-                        </span>
-                      )}
+                      <ResetPasswordButton clientId={client.id} email={client.email} />
                     </div>
                   </td>
 

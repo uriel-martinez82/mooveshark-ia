@@ -42,6 +42,7 @@ export const clients = pgTable('clients', {
   status:                clientStatusEnum('status').default('trial'),
   stripeCustomerId:      text('stripe_customer_id'),
   stripeSubscriptionId:  text('stripe_subscription_id'),
+  mustChangePassword: boolean('must_change_password').default(false),
   interactionsThisMonth: integer('interactions_this_month').default(0),
   createdAt:             timestamp('created_at').defaultNow(),
   updatedAt:             timestamp('updated_at').defaultNow(),
