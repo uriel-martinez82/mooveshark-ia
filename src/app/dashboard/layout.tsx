@@ -16,8 +16,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Chequear si debe cambiar contraseña
   const [client] = await db.select().from(clients).where(eq(clients.id, clientId))
+  
   if (client?.mustChangePassword) {
-    redirect('/dashboard/change-password')
+    redirect('/change-password')
   }
 
   return (

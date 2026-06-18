@@ -18,6 +18,12 @@ export default auth((req) => {
     if (role !== 'client') return NextResponse.redirect(new URL('/admin', req.url))
   }
 
+  // Proteger /change-password — solo clients logueados
+  if (pathname.startsWith('/change-password')) {
+    if (!isLoggedIn) return NextResponse.redirect(new URL('/auth/login', req.url))
+    if (role !== 'client') return NextResponse.redirect(new URL('/admin', req.url))
+  }
+
   // Redirigir si ya está logueado
   if (pathname.startsWith('/auth/login') && isLoggedIn) {
     return NextResponse.redirect(new URL(role === 'admin' ? '/admin' : '/dashboard', req.url))
@@ -27,5 +33,5 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*', '/auth/login'],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/auth/login', '/change-password'],
 }
